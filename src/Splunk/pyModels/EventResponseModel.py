@@ -6,46 +6,52 @@ from typing import List
 class Datum:
     object: str
     type: int
-    item_id: UUID
-    collection_id: UUID
-    group_id: UUID
-    policy_id: UUID
-    member_id: UUID
-    acting_user_id: UUID
+    itemId: UUID
+    collectionId: UUID
+    groupId: UUID
+    policyId: UUID
+    memberId: UUID
+    actingUserId: UUID
     date: datetime
     device: int
-    ip_address: str
+    ipAddress: str
 
     def __init__(
             self,
             object: str,
             type: int,
-            item_id: UUID,
-            collection_id: UUID,
-            group_id: UUID,
-            policy_id: UUID,
-            member_id: UUID,
-            acting_user_id: UUID,
+            itemId: UUID,
+            collectionId: UUID,
+            groupId: UUID,
+            policyId: UUID,
+            memberId: UUID,
+            actingUserId: UUID,
             date: datetime,
             device: int,
-            ip_address: str) -> None:
+            ipAddress: str) -> None:
         self.object = object
         self.type = type
-        self.item_id = item_id
-        self.collection_id = collection_id
-        self.group_id = group_id
-        self.policy_id = policy_id
-        self.member_id = member_id
-        self.acting_user_id = acting_user_id
+        self.itemId = itemId
+        self.collectionId = collectionId
+        self.groupId = groupId
+        self.policyId = policyId
+        self.memberId = memberId
+        self.actingUserId = actingUserId
         self.date = date
         self.device = device
-        self.ip_address = ip_address
+        self.ipAddress = ipAddress
 
 
 class EventResponseModel:
     object: str
     data: List[Datum]
+    continuationToken: str
 
-    def __init__(self, object: str, data: List[Datum]) -> None:
+    def __init__(
+            self,
+            object: str,
+            data: List[Datum],
+            continuationToken: str = None) -> None:
         self.object = object
         self.data = data
+        self.continuationToken = continuationToken
