@@ -12,7 +12,6 @@ import os
 import subprocess
 import shutil
 import datetime
-# from typing import List
 from pyModels.EventLogModel import EventLogModel
 from pyModels.EventResponseModel import EventResponseModel
 
