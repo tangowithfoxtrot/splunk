@@ -190,10 +190,10 @@ async def bw_get_events(token, to_stdout):
             return events
 
 async def main():
-
     if args.events:
-        token = bw_authenticate()
-        events = await bw_get_events(token, args.stdout)
-
+        token = await bw_authenticate()
+        task_events = asyncio.create_task(bw_get_events(token, args.stdout))
+        events = await task_events
+        
 if __name__ == '__main__':
     asyncio.run(main())
