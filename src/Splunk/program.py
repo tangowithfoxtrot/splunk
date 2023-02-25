@@ -1,7 +1,8 @@
 """
 Bitwarden Splunk App
 """
-
+import asyncio
+import aiohttp
 import requests
 import json
 import argparse
@@ -47,6 +48,12 @@ argparser.add_argument(
     '--collections',
     help='Log collections',
     default=False,
+    action='store_true'
+)
+argparser.add_argument(
+    '--stdout',
+    help='Print logs to stdout',
+    default=True,
     action='store_true'
 )
 argparser.add_argument(
@@ -142,7 +149,7 @@ def hash_data(data):
 
     data['hash'] = event_hash_b64
 
-def bw_get_events(token, to_stdout=False):
+async def bw_get_events(token, to_stdout):
     headers = {
         'Authorization': f'Bearer {token}',
         'Accept': 'application/json'
@@ -152,49 +159,44 @@ def bw_get_events(token, to_stdout=False):
         'startDate': EVENTS_START_DATE
     }
 
-    response = requests.get(
-        f'{BW_API_URL}/public/events',
-        headers=headers,
-        params=params)
-    response.raise_for_status()
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+                f'{BW_API_URL}/public/events',
+                headers=headers,
+                params=params) as response:
+            response.raise_for_status()
+            event_response = EventResponseModel(**await response.json())
+            events = event_response.data
+            events = [dict((k, v) for k, v in event.items() if v is not None)
+                      for event in events]  # remove null values
 
-    event_response = EventResponseModel(**response.json())
-    events = event_response.data
-    events = [dict((k, v) for k, v in event.items() if v is not None)
-                       for event in events] # remove null values
-    
-    if shutil.which('bw'):
-        item_name_map = bw_decrypt_names('items')
-        collection_name_map = bw_decrypt_names('collections')
+            if shutil.which('bw'):
+                item_name_map = bw_decrypt_names('items')
+                collection_name_map = bw_decrypt_names('collections')
 
-        for event in events:
-            if 1100 <= event['type'] <= 1199:
-                event['name'] = item_name_map.get(event['itemId'], '')
-            if 1300 <= event['type'] <= 1399:
-                event['name'] = collection_name_map.get(
-                    event['collectionId'], '')
-    else:
-        for event in events:
-            if 1100 <= event['type'] <= 1199:
-                event['name'] = 'Cannot decrypt name. Bitwarden CLI not found.'
-            if 1300 <= event['type'] <= 1399:
-                event['name'] = 'Cannot decrypt name. Bitwarden CLI not found.'
+                for event in events:
+                    if 1100 <= event['type'] <= 1199:
+                        event['name'] = item_name_map.get(event['itemId'], '')
+                    if 1300 <= event['type'] <= 1399:
+                        event['name'] = collection_name_map.get(
+                            event['collectionId'], '')
+            else:
+                for event in events:
+                    if 1100 <= event['type'] <= 1199:
+                        event['name'] = 'Cannot decrypt name. Bitwarden CLI not found.'
+                    if 1300 <= event['type'] <= 1399:
+                        event['name'] = 'Cannot decrypt name. Bitwarden CLI not found.'
 
-    if to_stdout:
-        print(json.dumps(events, indent=2, sort_keys=True))
+            if to_stdout:
+                print(json.dumps(events, indent=2, sort_keys=True))
 
-    return events
+            return events
 
-def main():
-    token = bw_authenticate()
+async def main():
+
     if args.events:
-        events = bw_get_events(token, to_stdout=True)
-        # splunk_send_events(events, to_stdout=True)
-    if args.groups:
-        groups = bw_get_groups(token, to_stdout=True)
-    if args.collections:
-        collections = bw_get_collections(token, to_stdout=True)
+        token = bw_authenticate()
+        events = await bw_get_events(token, args.stdout)
 
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    asyncio.run(main())
