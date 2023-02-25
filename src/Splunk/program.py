@@ -138,7 +138,6 @@ def bw_decrypt_names(object_type):
     return object_name_map
 
 def hash_data(data):
-    # make this work; haven't tested it yet
     event_hash = hashlib.sha256(
         json.dumps(
             data,
@@ -147,6 +146,7 @@ def hash_data(data):
     event_hash_b64 = base64.b64encode(event_hash).decode()
 
     data['hash'] = event_hash_b64
+    return data
 
 async def bw_get_events(token, to_stdout):
     headers = {
@@ -179,12 +179,14 @@ async def bw_get_events(token, to_stdout):
                     if 1300 <= event['type'] <= 1399:
                         event['name'] = collection_name_map.get(
                             event['collectionId'], '')
+                    hash_data(event)
             else:
                 for event in events:
                     if 1100 <= event['type'] <= 1199:
                         event['name'] = 'Cannot decrypt name. Bitwarden CLI not found.'
                     if 1300 <= event['type'] <= 1399:
                         event['name'] = 'Cannot decrypt name. Bitwarden CLI not found.'
+                    hash_data(event)
 
             if to_stdout:
                 print(json.dumps(events, indent=2))
