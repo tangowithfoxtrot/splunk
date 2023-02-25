@@ -73,6 +73,7 @@ def build_app():
 
         os.makedirs(app_lib_out, exist_ok=True)
         os.makedirs(app_bin_out, exist_ok=True)
+
         shutil.copy(
             os.path.join(
                 dir_path,
@@ -80,17 +81,16 @@ def build_app():
             os.path.join(
                 app_bin_out,
                 'program.py'))
+        shutil.copytree(
+            os.path.join(
+                dir_path,
+                'src/Splunk/pyModels'),
+            os.path.join(
+                app_bin_out,  # change to app_lib_out if required
+                'pyModels'))
+
         shutil.rmtree(os.path.join(app_lib_out, 'bin'), ignore_errors=True)
         shutil.rmtree(os.path.join(app_lib_out, 'obj'), ignore_errors=True)
-
-        if 'win' in rid:
-            with open(os.path.join(app_out, 'default', 'inputs.conf'), 'r+') as f:
-                content = f.read()
-                f.seek(0)
-                f.write(
-                    content.replace(
-                        'Bitwarden_Splunk',
-                        'Bitwarden_Splunk.exe'))
 
         if args.version:
             with open(os.path.join(app_out, 'default', 'app.conf'), 'r+') as f:
@@ -115,7 +115,6 @@ def clean():
     shutil.rmtree(output_dir, ignore_errors=True)
 
 # Main
-
 
 if args.task == 'build':
     build_app()
