@@ -187,7 +187,7 @@ async def bw_get_events(token, to_stdout):
                         event['name'] = 'Cannot decrypt name. Bitwarden CLI not found.'
 
             if to_stdout:
-                print(json.dumps(events, indent=2, sort_keys=True))
+                print(json.dumps(events, indent=2))
 
             return events
 
