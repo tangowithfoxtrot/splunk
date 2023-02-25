@@ -3,7 +3,6 @@ Bitwarden Splunk App
 """
 import asyncio
 import aiohttp
-import requests
 import json
 import argparse
 import base64
@@ -77,21 +76,18 @@ EVENTS_START_DATE = (datetime.datetime.now() -
 SPLUNK_API_URL = os.getenv("SPLUNK_API_URL", "http://192.168.1.11:8089")
 DEBUG = args.debug
 
-def bw_authenticate():
+async def bw_authenticate():
     payload = 'client_id=' + BW_CLIENT_ID + '&client_secret=' + \
         BW_CLIENT_SECRET + '&grant_type=client_credentials&scope=api.organization'
 
     headers = {'Content-Type': 'application/x-www-form-urlencoded',
                'Accept': 'application/json'}
 
-    response = requests.request(
-        "POST",
-        BW_BASE_URL +
-        "/identity/connect/token",
-        headers=headers,
-        data=payload).json()['access_token']
-
-    return response
+    async with aiohttp.ClientSession() as session:
+        async with session.post(BW_BASE_URL + "/identity/connect/token", headers=headers, data=payload) as response:
+            response.raise_for_status()
+            response_json = await response.json()
+            return response_json['access_token']
 
 def get_cli_session_key():
     if not shutil.which('bw'):
