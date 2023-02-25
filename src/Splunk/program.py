@@ -160,6 +160,8 @@ def bw_get_events(token, to_stdout=False):
 
     event_response = EventResponseModel(**response.json())
     events = event_response.data
+    events = [dict((k, v) for k, v in event.items() if v is not None)
+                       for event in events] # remove null values
     
     if shutil.which('bw'):
         item_name_map = bw_decrypt_names('items')
