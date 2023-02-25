@@ -19,7 +19,7 @@ argparser = argparse.ArgumentParser()
 argparser.add_argument(
     '--password',
     help='Bitwarden master password',
-    required=True
+    required=False
 )
 argparser.add_argument(
     '--id',
