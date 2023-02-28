@@ -66,7 +66,6 @@ args = argparser.parse_args()
 
 appsettings = AppSettings()
 
-BW_BASE_URL = os.getenv("BW_BASE_URL") or appsettings.bw_api_url
 BW_API_URL = os.getenv("BW_API_URL") or appsettings.bw_api_url
 BW_IDENTITY_URL = os.getenv(
     "BW_IDENTITY_URL") or appsettings.bw_identity_url
@@ -86,7 +85,7 @@ async def bw_authenticate():
                'Accept': 'application/json'}
 
     async with aiohttp.ClientSession() as session:
-        async with session.post(BW_BASE_URL + "/identity/connect/token", headers=headers, data=payload) as response:
+        async with session.post(BW_IDENTITY_URL + "/connect/token", headers=headers, data=payload) as response:
             response.raise_for_status()
             response_json = await response.json()
             return response_json['access_token']
