@@ -64,16 +64,17 @@ argparser.add_argument(
 
 args = argparser.parse_args()
 
-BW_BASE_URL = os.getenv("BW_BASE_URL", "https://vault.bitwarden.com")
-BW_API_URL = os.getenv("BW_API_URL", "https://api.bitwarden.com")
+appsettings = AppSettings()
+
+BW_BASE_URL = os.getenv("BW_BASE_URL") or appsettings.bw_api_url
+BW_API_URL = os.getenv("BW_API_URL") or appsettings.bw_api_url
 BW_IDENTITY_URL = os.getenv(
-    "BW_IDENTITY_URL", "https://identity.bitwarden.com")
+    "BW_IDENTITY_URL") or appsettings.bw_identity_url
 BW_CLIENT_ID = args.id or os.getenv("BW_CLIENT_ID")
 BW_PASSWORD = args.password or os.getenv("BW_PASSWORD")
 BW_CLIENT_SECRET = args.secret or os.getenv("BW_CLIENT_SECRET")
 BW_CLI_SYNC_INTERVAL = 1 * 60  # 1 minute
-EVENTS_START_DATE = (datetime.datetime.now() -
-                     datetime.timedelta(days=365)).isoformat()
+EVENTS_START_DATE = appsettings.events_start_date
 SPLUNK_API_URL = os.getenv("SPLUNK_API_URL", "http://192.168.1.11:8089")
 DEBUG = args.debug
 
@@ -195,6 +196,6 @@ async def main():
         token = await bw_authenticate()
         task_events = asyncio.create_task(bw_get_events(token, args.stdout))
         events = await task_events
-        
+
 if __name__ == '__main__':
     asyncio.run(main())
